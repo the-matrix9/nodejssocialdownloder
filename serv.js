@@ -44,7 +44,7 @@ const swaggerOptions = {
       contact: { name: "revangeapi" },
     },
     servers: [
-      { url: "http://localhost:3000", description: "Local" },
+      { url: "https://nodejssocialdownloder.onrender.com/", description: "Local" },
       // Deploy होने पर अपने डोमेन को यहां जोड़ लें
     ],
     tags: [
