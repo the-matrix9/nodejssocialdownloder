@@ -8,7 +8,7 @@
  *
  * Run:
  *   npm init -y
- *   npm i express swagger-ui-express swagger-jsdoc yt-dlp-exec cors
+ *   npm i express swagger-ui-express swagger-jsdoc yt-dlp-exec cors node-fetch
  *   node server.js
  *
  * Tip (Deploy): Render/Railway/VPS पर चलाएँ; frontend/worker इस API को call करें.
@@ -44,8 +44,8 @@ const swaggerOptions = {
       contact: { name: "revangeapi" },
     },
     servers: [
-      { url: "https://nodejssocialdownloder.onrender.com/", description: "Local" },
-      // Deploy होने पर अपने डोमेन को यहां जोड़ लें
+      { url: "http://localhost:3000", description: "Local Dev" },
+      { url: "https://nodejssocialdownloder.onrender.com", description: "Render Deploy" }
     ],
     tags: [
       { name: "Universal", description: "All social sites via yt-dlp" },
@@ -221,7 +221,7 @@ const swaggerOptions = {
       },
     },
   },
-  apis: [], // (we’re defining the spec inline above)
+  apis: [], // (spec inline hi define kiya hai)
 };
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
 
@@ -246,7 +246,6 @@ function mapFormats(info) {
       url: f.url,
     });
   }
-  // Prefer higher resolutions first (if width/height exist)
   out.sort((a, b) => (b.height || 0) - (a.height || 0));
   return out;
 }
@@ -255,7 +254,6 @@ function mapFormats(info) {
 
 /**
  * GET /revangeapi/download?url=
- * Universal downloader via yt-dlp (supports 1000+ sites).
  */
 app.get(`/${APP_NAME}/download`, async (req, res) => {
   try {
@@ -266,14 +264,11 @@ app.get(`/${APP_NAME}/download`, async (req, res) => {
         .json({ success: false, error: "Missing query param: url" });
     }
 
-    // yt-dlp-exec downloads & caches the binary automatically.
     const info = await youtubedl(videoUrl, {
       dumpSingleJson: true,
-      // Helpful flags (safer defaults)
       noCheckCertificates: true,
       noWarnings: true,
       preferFreeFormats: true,
-      // You can add cookies via headers/cookies file if needed in future.
     });
 
     const data = {
@@ -295,7 +290,6 @@ app.get(`/${APP_NAME}/download`, async (req, res) => {
 
 /**
  * GET /revangeapi/terabox/download?url=
- * Proxies to your Cloudflare Worker terabox API and returns its JSON.
  */
 app.get(`/${APP_NAME}/terabox/download`, async (req, res) => {
   try {
@@ -307,7 +301,7 @@ app.get(`/${APP_NAME}/terabox/download`, async (req, res) => {
     }
 
     const upstream = `${TERABOX_BACKEND_BASE}${encodeURIComponent(tbUrl)}`;
-    const r = await fetch(upstream, { timeout: 30000 });
+    const r = await fetch(upstream);
 
     if (!r.ok) {
       const text = await r.text().catch(() => "");
